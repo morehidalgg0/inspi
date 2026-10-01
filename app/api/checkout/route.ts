@@ -4,7 +4,6 @@ import {
   EBOOK,
   createMpClient,
   getSiteUrl,
-  getTestPayerEmail,
   isPublicSiteUrl,
   isSandboxToken,
 } from '../../lib/mercadopago';
@@ -13,7 +12,6 @@ export async function POST(request: Request) {
   try {
     const siteUrl = getSiteUrl(request);
     const isPublic = isPublicSiteUrl(siteUrl);
-    const testPayerEmail = getTestPayerEmail();
 
     await isSandboxToken();
 
@@ -41,9 +39,10 @@ export async function POST(request: Request) {
         },
         // auto_return exige URLs publicas: con localhost la API devuelve 400.
         ...(isPublic ? { auto_return: 'approved' } : {}),
-        // En sandbox el email del comprador tiene que ser de un usuario de
-        // prueba; precargarlo evita el rechazo "una de las partes es de prueba".
-        ...(testPayerEmail ? { payer: { email: testPayerEmail } } : {}),
+        // No se manda payer: con un email fijo MP trata el checkout como de
+        // produccion, bloquea la edicion del campo y rechaza la tarjeta de
+        // prueba. En sandbox el comprador escribe su email y MP valida la
+        // tarjeta por su cuenta.
         notification_url: `${siteUrl}/api/webhooks/mercadopago`,
         external_reference: externalReference,
         statement_descriptor: EBOOK.statementDescriptor,
