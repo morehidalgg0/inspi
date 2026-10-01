@@ -17,7 +17,15 @@ type MpNotification = {
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const url = new URL(request.url);
-  const paymentId = url.searchParams.get('data.id');
+
+  let body: MpNotification = {};
+  try {
+    body = rawBody ? (JSON.parse(rawBody) as MpNotification) : {};
+  } catch {
+    return NextResponse.json({ error: 'Body invalido' }, { status: 400 });
+  }
+
+  const paymentId = url.searchParams.get('data.id') ?? body?.data?.id;
 
   // Evento de prueba manual del panel de MP: no aplica.
   if (paymentId === 'test' || paymentId === 'TEST') {
@@ -52,16 +60,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Firma invalida' }, { status: 401 });
   }
 
-  let notification: MpNotification = {};
-  try {
-    notification = JSON.parse(rawBody) as MpNotification;
-  } catch {
-    console.warn('[MP Webhook] Payload no es JSON valido.');
-  }
-
-  if (notification.type !== 'payment') {
-    console.log(`[MP Webhook] Evento ignorado: ${notification.type}/${notification.action}`);
-    return NextResponse.json({ received: true, ignored: notification.type ?? 'unknown' });
+  if (body.type !== 'payment') {
+    console.log(`[MP Webhook] Evento ignorado: ${body.type}/${body.action}`);
+    return NextResponse.json({ received: true, ignored: body.type ?? 'unknown' });
   }
 
   try {
