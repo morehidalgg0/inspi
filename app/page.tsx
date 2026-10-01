@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react';
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(3 * 3600 + 45 * 60 + 12); // 3h 45m 12s evergreen timer
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -20,6 +22,27 @@ export default function Home() {
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleCheckout = async () => {
+    setCheckoutError('');
+    setCheckoutLoading(true);
+
+    try {
+      const res = await fetch('/api/checkout', { method: 'POST' });
+      const data = await res.json();
+
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      setCheckoutError(data.error ?? 'No pudimos iniciar el pago. Intentá de nuevo.');
+    } catch {
+      setCheckoutError('Falló la conexión. Revisá tu internet e intentá de nuevo.');
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   return (
@@ -297,15 +320,15 @@ export default function Home() {
                 </div>
 
                 <button 
-                  onClick={async () => {
-                    const res = await fetch('/api/checkout', { method: 'POST' });
-                    const data = await res.json();
-                    if (data.url) window.location.href = data.url;
-                    else alert("Configurando pasarela de pagos... (Falta token)");
-                  }}
-                  className="bg-green-500 hover:bg-green-400 text-black w-full py-5 rounded-xl font-extrabold text-xl shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 transition-all mb-4">
-                  COMPRAR AHORA
+                  onClick={handleCheckout}
+                  disabled={checkoutLoading}
+                  className="bg-green-500 hover:bg-green-400 disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none disabled:hover:scale-100 text-black w-full py-5 rounded-xl font-extrabold text-xl shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 transition-all mb-4">
+                  {checkoutLoading ? 'REDIRIGIENDO…' : 'COMPRAR AHORA'}
                 </button>
+
+                {checkoutError && (
+                  <p role="alert" className="mb-4 text-sm text-red-400 font-medium">{checkoutError}</p>
+                )}
 
                 <div className="flex flex-col gap-2 text-xs text-zinc-400 font-medium w-full">
                   <div className="flex items-center justify-center gap-2"><i className="fa-regular fa-calendar-check text-blue-400"></i> ENVÍO INMEDIATO POR EMAIL</div>
