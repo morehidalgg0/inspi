@@ -6,26 +6,32 @@ import fs from 'fs/promises';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev';
 const EBOOK_FILENAME = 'ebook.zip';
 const EBOOK_PATH = path.join(process.cwd(), 'assets', EBOOK_FILENAME);
 
 export async function POST(request: Request) {
   try {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error('[SendEbook] Falta RESEND_API_KEY.');
+      return NextResponse.json({ error: 'Email no configurado' }, { status: 500 });
+    }
+
+    const resend = new Resend(apiKey);
+
     const { email } = await request.json();
 
     if (!email || typeof email !== 'string') {
       return NextResponse.json({ error: 'Email requerido' }, { status: 400 });
     }
 
-    let pdfBuffer: Buffer;
+    let fileBuffer: Buffer;
     try {
-      pdfBuffer = await fs.readFile(EBOOK_PATH);
+      fileBuffer = await fs.readFile(EBOOK_PATH);
     } catch {
-      console.error(`[SendEbook] No se encontro el PDF en ${EBOOK_PATH}`);
-      return NextResponse.json({ error: 'PDF no encontrado' }, { status: 500 });
+      console.error(`[SendEbook] No se encontro el ebook en ${EBOOK_PATH}`);
+      return NextResponse.json({ error: 'Ebook no encontrado' }, { status: 500 });
     }
 
     await resend.emails.send({
@@ -54,7 +60,7 @@ export async function POST(request: Request) {
       attachments: [
         {
           filename: EBOOK_FILENAME,
-          content: pdfBuffer,
+          content: fileBuffer,
         },
       ],
     });
