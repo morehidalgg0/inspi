@@ -52,6 +52,10 @@ export async function POST(request: Request) {
         // prueba; precargarlo evita el rechazo "una de las partes es de prueba".
         // En produccion usa el email que el cliente ingresó en la landing.
         payer: { email: testPayerEmail || customerEmail },
+        // MercadoPago ignora payer.email si el comprador esta logueado y usa el
+        // de su cuenta. Guardamos el email ingressado en la landing aca porque
+        // metadata si se copia tal cual al pago, y el webhook lo prioriza.
+        metadata: { delivery_email: customerEmail },
         notification_url: `${siteUrl}/api/webhooks/mercadopago`,
         external_reference: externalReference,
         statement_descriptor: EBOOK.statementDescriptor,

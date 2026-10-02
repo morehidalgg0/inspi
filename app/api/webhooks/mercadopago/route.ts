@@ -69,10 +69,14 @@ export async function POST(request: Request) {
 
     const isApproved = payment.status === 'approved';
     const amountMatches = payment.transaction_amount === EBOOK.unitPrice;
-    const email = payment.payer?.email ?? 'sin-email';
+
+    // El email que el cliente escribio en la landing viaja en metadata y no es
+    // alterado por MercadoPago. payer.email es el fallback: si el comprador
+    // estaba logueado, MP lo reemplaza por el de su cuenta.
+    const email = payment.metadata?.delivery_email ?? payment.payer?.email ?? null;
 
     console.log(
-      `[MP Webhook] pago=${payment.id} estado=${payment.status} detalle=${payment.status_detail} monto=${payment.transaction_amount} ref=${payment.external_reference ?? '-'} email=${email}`,
+      `[MP Webhook] pago=${payment.id} estado=${payment.status} detalle=${payment.status_detail} monto=${payment.transaction_amount} ref=${payment.external_reference ?? '-'} email=${email ?? 'sin-email'}`,
     );
 
     if (!amountMatches) {
@@ -80,6 +84,12 @@ export async function POST(request: Request) {
         `[MP Webhook] Monto inesperado en el pago ${payment.id}: ${payment.transaction_amount} (esperado ${EBOOK.unitPrice}).`,
       );
       return NextResponse.json({ received: true, ignored: 'amount-mismatch' });
+    }
+
+    // 500 para que MercadoPago reintente: sin email no hay entrega posible.
+    if (isApproved && !email) {
+      console.error(`[MP Webhook] El pago ${payment.id} no tiene email para entregar el ebook.`);
+      return NextResponse.json({ error: 'Pago aprobado sin email de entrega' }, { status: 500 });
     }
 
     if (isApproved) {
