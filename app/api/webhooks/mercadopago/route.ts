@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Payment, WebhookSignatureValidator, InvalidWebhookSignatureError } from 'mercadopago';
-import { EBOOK, createMpClient, getWebhookSecret } from '../../../lib/mercadopago';
+import { EBOOK, createMpClient, getWebhookSecret, getSiteUrl } from '../../../lib/mercadopago';
 
 type MpNotification = {
   id?: number | string;
@@ -17,15 +17,7 @@ type MpNotification = {
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const url = new URL(request.url);
-
-  let body: MpNotification = {};
-  try {
-    body = rawBody ? (JSON.parse(rawBody) as MpNotification) : {};
-  } catch {
-    return NextResponse.json({ error: 'Body invalido' }, { status: 400 });
-  }
-
-  const paymentId = url.searchParams.get('data.id') ?? body?.data?.id;
+  const paymentId = url.searchParams.get('data.id');
 
   // Evento de prueba manual del panel de MP: no aplica.
   if (paymentId === 'test' || paymentId === 'TEST') {
@@ -60,9 +52,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Firma invalida' }, { status: 401 });
   }
 
-  if (body.type !== 'payment') {
-    console.log(`[MP Webhook] Evento ignorado: ${body.type}/${body.action}`);
-    return NextResponse.json({ received: true, ignored: body.type ?? 'unknown' });
+  let notification: MpNotification = {};
+  try {
+    notification = JSON.parse(rawBody) as MpNotification;
+  } catch {
+    console.warn('[MP Webhook] Payload no es JSON valido.');
+  }
+
+  if (notification.type !== 'payment') {
+    console.log(`[MP Webhook] Evento ignorado: ${notification.type}/${notification.action}`);
+    return NextResponse.json({ received: true, ignored: notification.type ?? 'unknown' });
   }
 
   try {
@@ -84,9 +83,22 @@ export async function POST(request: Request) {
     }
 
     if (isApproved) {
-      // Aca va la entrega del ebook: enviar el archivo o el link de descarga
-      // al email del comprador y registrar la venta.
-      console.log(`[MP Webhook] Venta confirmada. Entregar ebook a ${email}.`);
+      try {
+        const response = await fetch(`${getSiteUrl()}/api/send-ebook`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error(`[MP Webhook] Error enviando ebook a ${email}:`, errorData);
+        } else {
+          console.log(`[MP Webhook] Ebook enviado a ${email}`);
+        }
+      } catch (error) {
+        console.error(`[MP Webhook] Fallo el envio del ebook a ${email}:`, error);
+      }
     }
 
     return NextResponse.json({ received: true, status: payment.status });

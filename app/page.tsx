@@ -8,6 +8,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState(3 * 3600 + 45 * 60 + 12); // 3h 45m 12s evergreen timer
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -26,10 +27,20 @@ export default function Home() {
 
   const handleCheckout = async () => {
     setCheckoutError('');
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setCheckoutError('Ingresá un email válido para recibir tu ebook.');
+      return;
+    }
+
     setCheckoutLoading(true);
 
     try {
-      const res = await fetch('/api/checkout', { method: 'POST' });
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
       const data = await res.json();
 
       if (res.ok && data.url) {
@@ -319,7 +330,15 @@ export default function Home() {
                   <span className="text-xl font-bold text-white mt-6">ARS</span>
                 </div>
 
-                <button 
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Tu email para recibir el ebook"
+                  className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-zinc-500 text-sm mb-3 focus:outline-none focus:border-blue-500 transition"
+                />
+
+                <button
                   onClick={handleCheckout}
                   disabled={checkoutLoading}
                   className="bg-green-500 hover:bg-green-400 disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-none disabled:hover:scale-100 text-black w-full py-5 rounded-xl font-extrabold text-xl shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:scale-105 transition-all mb-4">
