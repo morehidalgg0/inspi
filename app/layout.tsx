@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import {
+  GoogleTagManager,
+  GoogleTagManagerNoscript,
+} from "./components/google-tag-manager";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,9 +18,11 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        <GoogleTagManager />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
       </head>
       <body className="antialiased">
+        <GoogleTagManagerNoscript />
         {children}
       </body>
     </html>
