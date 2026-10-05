@@ -1,4 +1,11 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "./components/google-analytics";
+import {
+  GoogleTagManager,
+  GoogleTagManagerNoscript,
+} from "./components/google-tag-manager";
+import { MetaPixel, MetaPixelNoscript } from "./components/meta-pixel";
+import { MetaPixelRouteView } from "./components/meta-pixel-route-view";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,9 +21,15 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        <GoogleTagManager />
+        <GoogleAnalytics />
+        <MetaPixel />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
       </head>
       <body className="antialiased">
+        <GoogleTagManagerNoscript />
+        <MetaPixelNoscript />
+        <MetaPixelRouteView />
         {children}
       </body>
     </html>

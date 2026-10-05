@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { flushPixel, trackInitiateCheckout } from './lib/meta-pixel';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -44,6 +45,10 @@ export default function Home() {
       const data = await res.json();
 
       if (res.ok && data.url) {
+        trackInitiateCheckout();
+        // Sin esta espera el redirect cancela el request del pixel y el
+        // InitiateCheckout nunca llega a Meta.
+        await flushPixel();
         window.location.href = data.url;
         return;
       }

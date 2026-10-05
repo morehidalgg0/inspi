@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MetaPurchaseTracker } from "../components/meta-purchase-tracker";
 
 export const metadata = {
   title: "¡Gracias por tu compra!",
@@ -15,6 +16,7 @@ export default async function SuccessPage({
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-zinc-100 flex items-center justify-center px-6">
+      <MetaPurchaseTracker eventId={paymentId} />
       <div className="max-w-lg w-full bg-[#111] border border-green-500/30 rounded-2xl p-10 text-center shadow-[0_0_60px_rgba(34,197,94,0.12)]">
         <div className="text-6xl mb-6">✅</div>
         <h1 className="text-3xl font-bold text-white mb-4">¡Pago aprobado!</h1>
