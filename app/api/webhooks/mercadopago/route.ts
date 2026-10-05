@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Payment, WebhookSignatureValidator, InvalidWebhookSignatureError } from 'mercadopago';
-import { EBOOK, createMpClient, getWebhookSecret, getSiteUrl } from '../../../lib/mercadopago';
+import { EBOOK, createMpClient, getWebhookSecret } from '../../../lib/mercadopago';
+import { sendEbookEmail } from '../../../lib/ebook-delivery';
 
 type MpNotification = {
   id?: number | string;
@@ -92,22 +93,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Pago aprobado sin email de entrega' }, { status: 500 });
     }
 
-    if (isApproved) {
+    if (isApproved && email) {
       try {
-        const response = await fetch(`${getSiteUrl()}/api/send-ebook`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error(`[MP Webhook] Error enviando ebook a ${email}:`, errorData);
-        } else {
-          console.log(`[MP Webhook] Ebook enviado a ${email}`);
-        }
+        // La clave de idempotencia usa el id del pago: si MP notifica varias
+        // veces el mismo pago (o reintentamos), el cliente recibe un solo mail.
+        const emailId = await sendEbookEmail({ email, paymentId: payment.id ?? paymentId });
+        console.log(`[MP Webhook] Ebook enviado a ${email} (id=${emailId ?? '-'})`);
       } catch (error) {
-        console.error(`[MP Webhook] Fallo el envio del ebook a ${email}:`, error);
+        const message = error instanceof Error ? error.message : 'Error desconocido';
+        console.error(`[MP Webhook] Fallo el envio del ebook a ${email}: ${message}`);
+        // 500 para que Mercado Pago reintente: el cliente ya pagó y no puede
+        // quedarse sin ebook por un error pasajero de Resend.
+        return NextResponse.json({ error: 'No se pudo entregar el ebook' }, { status: 500 });
       }
     }
 
