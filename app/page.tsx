@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { flushPixel, trackInitiateCheckout } from './lib/meta-pixel';
+import { PRODUCT, formatPrice } from './lib/product';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -308,7 +309,7 @@ export default function Home() {
               
               <div className="flex justify-between items-end">
                 <div className="text-zinc-400 font-medium">Valor total: <span className="line-through text-lg">$85.000 ARS</span></div>
-                <div className="text-green-400 font-bold text-xl">– Hoy solo: $19.900 ARS</div>
+                <div className="text-green-400 font-bold text-xl">– Hoy solo: ${formatPrice(PRODUCT.unitPrice)} {PRODUCT.currencyId}</div>
               </div>
             </div>
 
@@ -331,7 +332,7 @@ export default function Home() {
                 
                 <div className="mb-8 flex items-start gap-1">
                   <span className="text-3xl font-bold text-white mt-1">$</span>
-                  <span className="text-7xl font-black text-white tracking-tighter">19.900</span>
+                  <span className="text-7xl font-black text-white tracking-tighter">{formatPrice(PRODUCT.unitPrice)}</span>
                   <span className="text-xl font-bold text-white mt-6">ARS</span>
                 </div>
 

@@ -1,10 +1,12 @@
+import { PRODUCT } from "./product";
+
 export const META_PIXEL_ID = "2187050011872218";
 
 export const META_PRODUCT = {
-  value: 19900,
-  currency: "ARS",
-  content_name: "De la Idea a los Ingresos + 4 Bonos",
-  content_ids: ["ebook-idea-ingresos"],
+  value: PRODUCT.unitPrice,
+  currency: PRODUCT.currencyId,
+  content_name: PRODUCT.title,
+  content_ids: [PRODUCT.id],
   content_type: "product",
 } as const;
 

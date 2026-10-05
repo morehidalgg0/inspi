@@ -1,19 +1,11 @@
 import { MercadoPagoConfig } from 'mercadopago';
+import { PRODUCT } from './product';
 
 /**
- * Datos del producto. Fuente única de verdad: el precio también se usa en la
- * landing, así que si lo cambiás acá hay que actualizarlo en app/page.tsx.
+ * Datos del producto para Mercado Pago. Vienen de app/lib/product.ts, que es la
+ * única fuente de verdad (también la usan la landing y el pixel de Meta).
  */
-export const EBOOK = {
-  id: 'ebook-idea-ingresos',
-  title: 'De la Idea a los Ingresos + 4 Bonos',
-  description:
-    'Ebook digital con 4 bonuses: checklist de validación, plantilla de precios, banco de 30 ideas validadas y comunidad privada.',
-  quantity: 1,
-  unitPrice: 19900,
-  currencyId: 'ARS',
-  statementDescriptor: 'DE LA IDEA A INGRESOS', // maximo 22 caracteres en MP
-} as const;
+export const EBOOK = PRODUCT;
 
 /**
  * URL base del sitio, sin slash final.
