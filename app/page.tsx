@@ -308,7 +308,7 @@ export default function Home() {
               </ul>
               
               <div className="flex justify-between items-end">
-                <div className="text-zinc-400 font-medium">Valor total: <span className="line-through text-lg">$85.000 ARS</span></div>
+                <div className="text-zinc-400 font-medium">Valor total: <span className="line-through text-lg">$5.000 ARS</span></div>
                 <div className="text-green-400 font-bold text-xl">– Hoy solo: ${formatPrice(PRODUCT.unitPrice)} {PRODUCT.currencyId}</div>
               </div>
             </div>
@@ -327,7 +327,7 @@ export default function Home() {
                 <p className="text-blue-400 font-medium mb-6">De la Idea a los Ingresos + Bonos</p>
                 
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-zinc-500 line-through text-lg">Precio habitual: $85.000 ARS</span>
+                  <span className="text-zinc-500 line-through text-lg">Precio habitual: $5.000 ARS</span>
                 </div>
                 
                 <div className="mb-8 flex items-start gap-1">
