@@ -126,3 +126,28 @@ export async function isSandboxToken(): Promise<boolean> {
 
   return sandboxCache;
 }
+
+/**
+ * Falla el checkout si el token ya es de produccion pero sigue cargado un email
+ * de comprador de prueba.
+ *
+ * Es la combinacion que hay que evitar al pasar a produccion: la preferencia se
+ * crea bien y el comprador completa el formulario entero, pero Mercado Pago
+ * rechaza el pago al confirmar con "una de las partes es de prueba". Todos los
+ * pagos fallan y el error aparece tarde, cuando el cliente ya esta en el sitio
+ * de Mercado Pago. Conviene cortarlo antes de crear la preferencia.
+ */
+export async function assertProductionSafe(): Promise<void> {
+  const testPayerEmail = getTestPayerEmail();
+
+  if (!testPayerEmail) return;
+  if (await isSandboxToken()) return;
+
+  console.error(
+    `[MP] MP_TEST_PAYER_EMAIL=${testPayerEmail} definido con un token de PRODUCCION: todos los pagos van a fallar.`,
+  );
+
+  throw new Error(
+    'Falta configurar: MP_TEST_PAYER_EMAIL esta definido junto a un token de produccion. Vacialo, porque Mercado Pago rechaza los pagos cuando una de las partes es de prueba.',
+  );
+}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { Preference } from 'mercadopago';
 import {
   EBOOK,
+  assertProductionSafe,
   createMpClient,
   getSiteUrl,
   getTestPayerEmail,
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
     }
 
     await isSandboxToken();
+    await assertProductionSafe();
 
     const preference = new Preference(createMpClient());
 
