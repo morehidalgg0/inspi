@@ -1,6 +1,6 @@
 import { PRODUCT } from "./product";
 
-export const META_PIXEL_ID = "2187050011872218";
+export const META_PIXEL_ID = "1815305999642461";
 
 export const META_PRODUCT = {
   value: PRODUCT.unitPrice,
