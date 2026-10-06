@@ -11,7 +11,7 @@ export const PRODUCT = {
   description:
     'Ebook digital con 4 bonos: páginas de venta editables, 100 prompts de ChatGPT, Mapa de Propósito y comunidad privada.',
   quantity: 1,
-  unitPrice: 1000,
+  unitPrice: 19900,
   currencyId: 'ARS',
   statementDescriptor: 'DE LA IDEA A INGRESOS', // maximo 22 caracteres en MP
 } as const;
